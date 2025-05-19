@@ -6,32 +6,23 @@ services:
       context: ./back_end
     container_name: erp_backend
     ports:
-      - "5000:5000"
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/erp_db
-    depends_on:
-      - db
-    networks:
-      - erp-network
-
-  frontend:
-    build:
-      context: ./front_end
-    container_name: erp_frontend
-    ports:
       - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@command-db-postgres:5432/erp_db
+      - MONGODB_URI=mongodb://mongodb:mongodb@query-db-mongodb:27017/erp_db?authSource=admin
     depends_on:
-      - backend
+      - command-db-postgres
+      - query-db-mongodb
     networks:
       - erp-network
 
-  db:
+  command-db-postgres:
     image: postgres:15
-    container_name: erp_db
+    container_name: erp_command_db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: erp_db
     ports:
       - "5432:5432"
@@ -40,8 +31,23 @@ services:
     networks:
       - erp-network
 
+  query-db-mongodb:
+    image: mongo:latest
+    container_name: erp_query_db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - erp-network
+
 volumes:
   pgdata:
+  mongodata:
 
 networks:
   erp-network:
